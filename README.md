@@ -15,29 +15,9 @@ This project was developed to build hands-on experience with workflow orchestrat
 * Automated quality control and reporting workflows
 * Reproducible execution through workflow automation
 
-## Pipeline Architecture
+## Workflow Architecture
 
-```text
-FASTQ INPUTS
-     │
-     ▼
-FastQC (Read Quality Control)
-     │
-     ▼
-BWA-MEM (Read Alignment)
-     │
-     ▼
-samtools (Sorting + Indexing BAM)
-     │
-     ▼
-bcftools (Variant Calling)
-     │
-     ▼
-QC Classification
-     │
-     ▼
-MultiQC (Aggregated Reporting)
-```
+![Clinical NGS Workflow Architecture](docs/clinical-ngs-workflow-architecture.png)
 
 ## Key Features
 
