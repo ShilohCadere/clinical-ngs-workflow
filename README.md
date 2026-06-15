@@ -17,7 +17,7 @@ This project was developed to build hands-on experience with workflow orchestrat
 
 ## Workflow Architecture
 
-![Clinical NGS Workflow Architecture](docs/clinical-ngs-workflow-architecture.png)
+![Clinical NGS Workflow Architecture](docs/Clinical-NGS-Workflow-Architecture.png)
 
 ## Key Features
 
