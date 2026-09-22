@@ -3,7 +3,7 @@
 ## At a Glance
 
 - End-to-end Nextflow DSL2 workflow processing paired-end sequencing data from FASTQ to VCF.
-- Integrates FastQC, BWA-MEM, samtools, bcftools, lightweight post-VCF QC summarization, and MultiQC.
+- Integrates FastQC, BWA-MEM, samtools, bcftools, lightweight post-VCF summarization, and MultiQC.
 - Demonstrates modular workflow orchestration, Docker-based execution, parameterized inputs, and reproducible bioinformatics processing.
 - Uses demonstration data and is intended as a portfolio workflow rather than a clinical production pipeline.
 
@@ -33,7 +33,7 @@ samtools Sort / Index
 bcftools Variant Calling
     |
     v
-VCF QC Summary
+VCF Summary
 ```
 
 ## Repository Structure
@@ -47,7 +47,7 @@ clinical-ngs-workflow/
 │   ├── bwa.nf
 │   ├── samtools.nf
 │   ├── bcftools.nf
-│   ├── qc_classification.nf
+│   ├── vcf_summary.nf
 │   └── multiqc.nf
 ├── data/                    # Demonstration inputs
 ├── bin/                     # Supporting executable scripts, if used
@@ -111,14 +111,14 @@ Successful execution produces organized outputs including:
 - FastQC reports
 - Sorted and indexed BAM files
 - VCF files
-- Per-sample VCF QC summaries
+- Per-sample VCF summaries
 - MultiQC report
 
 ## Design Decisions
 
 ### Modular DSL2 Processes
 
-Each analytical stage is implemented as a separate process so alignment, sorting, variant calling, QC, and reporting responsibilities remain distinct.
+Each analytical stage is implemented as a separate process so reference indexing, alignment, sorting, variant calling, summarization, and reporting responsibilities remain distinct.
 
 ### Config-Driven Parameters
 
@@ -136,14 +136,12 @@ The Docker image provides BWA, samtools, bcftools, FastQC, and MultiQC in one re
 
 This is a demonstration portfolio workflow, not a validated clinical pipeline. Current limitations include:
 
-- BWA reference indexing currently occurs within each alignment task rather than as a dedicated reusable indexing stage.
-- The post-VCF QC step is intentionally lightweight and is not a substitute for comprehensive variant QC.
+- The post-VCF summary is intentionally lightweight and is not a substitute for comprehensive variant QC.
 - The workflow does not yet include automated integration tests or CI-based execution checks.
 - Resource requests and executor-specific tuning are minimal.
 
 ## Future Improvements
 
-- Add a dedicated reference-indexing stage so BWA index files are generated once and reused.
 - Add automated workflow testing with small deterministic datasets.
 - Expand post-variant QC metrics.
 - Add process-specific CPU and memory configuration.
