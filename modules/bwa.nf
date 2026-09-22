@@ -11,7 +11,7 @@ process BWA_ALIGN {
 
     script:
     """
-    bwa index ${ref} 2>/dev/null || true
+    bwa index ${ref}
     bwa mem ${ref} ${fastq1} ${fastq2} > ${sample}.sam
     """
 }
