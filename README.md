@@ -3,199 +3,155 @@
 ## At a Glance
 
 - End-to-end Nextflow DSL2 workflow processing paired-end sequencing data from FASTQ to VCF.
-- Integrates quality control, alignment, variant calling, and aggregated reporting.
-- Demonstrates modular workflow orchestration, containerized execution, and reproducible bioinformatics pipelines.
-- Models a production-style sequencing workflow using simulated demonstration data.
-
----
+- Integrates FastQC, BWA-MEM, samtools, bcftools, lightweight post-VCF QC summarization, and MultiQC.
+- Demonstrates modular workflow orchestration, Docker-based execution, parameterized inputs, and reproducible bioinformatics processing.
+- Uses demonstration data and is intended as a portfolio workflow rather than a clinical production pipeline.
 
 ## Overview
 
-Clinical NGS Workflow is a portfolio project that models the computational processing stage of an NGS analysis pipeline. Beginning with paired-end FASTQ files, the workflow performs sequencing quality control, alignment, variant calling, and report aggregation using commonly adopted bioinformatics tools orchestrated through Nextflow DSL2.
+Clinical NGS Workflow models the computational processing stage of a sequencing analysis pipeline. Starting with paired-end FASTQ files, the workflow performs sequencing QC, alignment, BAM sorting and indexing, variant calling, simple variant-output summarization, and aggregated QC reporting.
 
-The repository emphasizes workflow architecture, reproducible execution, and modular software design commonly found in production bioinformatics environments while using simulated data for demonstration purposes.
+The project emphasizes workflow organization, explicit process dependencies, containerized execution, and reproducible handling of sequencing inputs.
 
----
+## Workflow
 
-## Why This Project Exists
-
-Modern sequencing analysis depends on coordinating multiple bioinformatics tools into reproducible workflows. Individual software packages perform specific analytical tasks, but workflow orchestration is responsible for connecting those stages into a reliable, repeatable pipeline.
-
-This project demonstrates that orchestration process.
-
-Using Nextflow DSL2 and Docker, the workflow automates sequencing quality control, alignment, variant calling, and reporting while maintaining clear separation between individual processing stages.
-
-The focus is not developing new analytical algorithms. Instead, the project demonstrates reproducible workflow design, modular pipeline architecture, and containerized execution within a representative NGS processing workflow.
-
----
-
-## Workflow Architecture
-
-Clinical NGS Workflow models the computational processing performed after sequencing data has been generated. Each analytical stage is implemented as an independent workflow module to improve readability, maintainability, and reproducibility.
-
-```
+```text
 Samplesheet
-      │
-      ▼
-FASTQ Input
-      │
-      ▼
-FastQC
-      │
-      ▼
+    |
+    v
+Paired FASTQ
+    |
+    +--> FastQC --------> MultiQC
+    |
+    v
 BWA-MEM Alignment
-      │
-      ▼
+    |
+    v
 samtools Sort / Index
-      │
-      ▼
+    |
+    v
 bcftools Variant Calling
-      │
-      ▼
-MultiQC Report
+    |
+    v
+VCF QC Summary
 ```
-
----
 
 ## Repository Structure
 
-```
+```text
 clinical-ngs-workflow/
-├── workflow/          # Nextflow DSL2 workflow definition
-├── modules/           # Individual pipeline processes
-├── data/              # Example sequencing inputs
-├── outputs/           # Generated workflow outputs
-├── Dockerfile
-└── nextflow.config
+├── main.nf                  # Main DSL2 workflow
+├── nextflow.config          # Default parameters and Docker profile
+├── modules/                 # Reusable Nextflow processes
+│   ├── fastqc.nf
+│   ├── bwa.nf
+│   ├── samtools.nf
+│   ├── bcftools.nf
+│   ├── qc_classification.nf
+│   └── multiqc.nf
+├── data/                    # Demonstration inputs
+├── bin/                     # Supporting executable scripts, if used
+├── docs/                    # Project documentation
+├── Dockerfile               # Reproducible tool environment
+└── README.md
 ```
-
-The repository is organized around workflow responsibilities rather than individual software tools. Each module performs one stage of the sequencing pipeline, allowing quality control, alignment, variant calling, and reporting to evolve independently while keeping workflow logic modular and maintainable.
-
----
 
 ## Current Capabilities
 
-Current functionality includes:
+- Reads paired-end sample definitions from a CSV samplesheet.
+- Runs FastQC on paired FASTQ files.
+- Aligns reads to a reference with BWA-MEM.
+- Converts, sorts, and indexes BAM files with samtools.
+- Calls variants with bcftools.
+- Produces a lightweight per-sample VCF summary.
+- Aggregates FastQC results with MultiQC.
+- Publishes organized outputs under a configurable output directory.
+- Runs tools through a Docker image using the included Nextflow profile.
 
-- Loading paired-end sequencing data through a sample sheet.
-- Performing sequencing quality assessment with FastQC.
-- Aligning sequencing reads using BWA-MEM.
-- Sorting and indexing BAM files using samtools.
-- Calling sequence variants using bcftools.
-- Aggregating workflow quality reports with MultiQC.
-- Executing reproducibly through Docker and Nextflow DSL2.
+## Configuration
 
----
+Default parameters are defined in `nextflow.config`:
 
-## Example Inputs
+```text
+samplesheet = data/samplesheet.csv
+ref         = data/reference.fasta
+outdir      = results
+```
 
-Example datasets are included to demonstrate the complete sequencing workflow.
-
-### Samplesheet
-
-- Sample identifier
-- Paired FASTQ file locations
-
-### Sequencing Data
-
-- Paired-end FASTQ files
-- Reference genome
-
-These example datasets are provided solely to demonstrate workflow execution and do not represent clinical sequencing data or proprietary laboratory outputs.
-
----
+They can be overridden at runtime with standard Nextflow parameters.
 
 ## Execution
 
-Install project dependencies:
+Build the Docker image:
 
 ```bash
 docker build -t ngs-pipeline:1.0 .
 ```
 
-Run the workflow:
+Run the bundled demonstration workflow:
 
 ```bash
-nextflow run workflow/main.nf \
-    -profile docker \
-    --samplesheet data/samplesheet.csv \
-    --ref data/reference.fasta
+nextflow run main.nf -profile docker
 ```
 
----
+Run with custom inputs:
 
-## Example Outputs
+```bash
+nextflow run main.nf \
+    -profile docker \
+    --samplesheet path/to/samplesheet.csv \
+    --ref path/to/reference.fasta \
+    --outdir results
+```
 
-Successful execution generates workflow outputs for downstream analysis.
+## Outputs
 
-### FastQC Reports
+Successful execution produces organized outputs including:
 
-Per-sample sequencing quality metrics.
-
-### Sorted BAM Files
-
-Coordinate-sorted alignments with accompanying BAM indexes.
-
-### Variant Calls (VCF)
-
-Sequence variants identified by bcftools.
-
-### MultiQC Report
-
-Aggregated quality metrics summarizing workflow execution across all processed samples.
-
-The generated outputs demonstrate reproducible workflow execution rather than clinical interpretation.
-
----
+- FastQC reports
+- Sorted and indexed BAM files
+- VCF files
+- Per-sample VCF QC summaries
+- MultiQC report
 
 ## Design Decisions
 
-Several architectural decisions intentionally shape this project.
+### Modular DSL2 Processes
 
-### Modular Workflow Design
+Each analytical stage is implemented as a separate process so alignment, sorting, variant calling, QC, and reporting responsibilities remain distinct.
 
-Each analytical stage is implemented as an independent Nextflow process. This keeps responsibilities well-defined while allowing workflow components to evolve independently.
+### Config-Driven Parameters
 
-### Containerized Execution
+Workflow defaults live in `nextflow.config` rather than being duplicated in the workflow script. This keeps runtime configuration separate from orchestration logic.
 
-Docker provides a reproducible software environment so identical inputs generate consistent analytical outputs across systems.
+### Explicit Dataflow Dependencies
 
-### Sample Sheet Driven Inputs
+MultiQC consumes FastQC outputs through a Nextflow channel rather than relying on a published output directory. This allows Nextflow to track execution order through data dependencies.
 
-Sample metadata is separated from workflow logic, allowing new sequencing datasets to be processed without modifying pipeline code.
+### Containerized Tooling
 
-### Workflow Automation
+The Docker image provides BWA, samtools, bcftools, FastQC, and MultiQC in one reproducible environment.
 
-Nextflow coordinates execution while managing dependencies between analytical stages, demonstrating scalable workflow orchestration commonly used in bioinformatics production environments.
+## Current Limitations
 
----
+This is a demonstration portfolio workflow, not a validated clinical pipeline. Current limitations include:
 
-## Testing
-
-This project emphasizes reproducible workflow execution through deterministic pipeline stages rather than Python unit testing.
-
-Individual workflow modules can be executed repeatedly using identical inputs to verify consistent analytical outputs throughout the pipeline.
-
----
+- BWA reference indexing currently occurs within each alignment task rather than as a dedicated reusable indexing stage.
+- The post-VCF QC step is intentionally lightweight and is not a substitute for comprehensive variant QC.
+- The workflow does not yet include automated integration tests or CI-based execution checks.
+- Resource requests and executor-specific tuning are minimal.
 
 ## Future Improvements
 
-Planned future development includes:
-
-- Integrating downstream analytical review through the companion Clinical NGS Review repository.
-- Expanding workflow support for additional sequencing analyses.
-- Increasing workflow configurability while preserving modular architecture.
-- Continuing to improve reproducibility and maintainability as analytical capabilities grow.
-
-Future development will continue to prioritize workflow architecture, reproducible execution, and modular software design over feature quantity.
-
----
+- Add a dedicated reference-indexing stage so BWA index files are generated once and reused.
+- Add automated workflow testing with small deterministic datasets.
+- Expand post-variant QC metrics.
+- Add process-specific CPU and memory configuration.
+- Integrate downstream analytical review with the companion Clinical NGS Review project.
 
 ## Technologies Used
 
-Nextflow (DSL2) • Docker • FastQC • MultiQC • BWA-MEM • samtools • bcftools
-
----
+Nextflow DSL2 • Docker • FastQC • MultiQC • BWA-MEM • samtools • bcftools
 
 ## Author
 
