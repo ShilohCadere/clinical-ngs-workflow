@@ -1,10 +1,10 @@
 nextflow.enable.dsl=2
 
 include { FASTQC } from './modules/fastqc.nf'
-include { BWA_ALIGN } from './modules/bwa.nf'
+include { BWA_INDEX; BWA_ALIGN } from './modules/bwa.nf'
 include { SORT_BAM } from './modules/samtools.nf'
 include { CALL_VARIANTS } from './modules/bcftools.nf'
-include { QC_CLASSIFY } from './modules/qc_classification.nf'
+include { VCF_SUMMARY } from './modules/vcf_summary.nf'
 include { MULTIQC } from './modules/multiqc.nf'
 
 workflow {
@@ -16,12 +16,13 @@ workflow {
             tuple(row.sample, file(row.fastq_1), file(row.fastq_2))
         }
 
+    reference = BWA_INDEX(file(params.ref))
     fastqc_out = FASTQC(samples)
 
-    aligned  = BWA_ALIGN(samples, file(params.ref))
+    aligned  = BWA_ALIGN(samples, reference)
     sorted   = SORT_BAM(aligned)
     variants = CALL_VARIANTS(sorted, file(params.ref))
-    QC_CLASSIFY(variants)
+    VCF_SUMMARY(variants)
 
     // Feed FastQC outputs directly into MultiQC so Nextflow tracks the dependency.
     MULTIQC(fastqc_out.collect())
